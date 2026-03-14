@@ -57,9 +57,13 @@ export async function runPostOnboardPreflight(
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timerId: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<T>((resolve) => {
+    timerId = setTimeout(() => resolve(fallback), ms);
+  });
   return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+    promise.finally(() => clearTimeout(timerId)),
+    timeout,
   ]);
 }
 
